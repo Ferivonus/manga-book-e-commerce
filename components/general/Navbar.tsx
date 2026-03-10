@@ -5,11 +5,15 @@ import Link from 'next/link';
 import { Menu, MenuButton, MenuItems, MenuItem, Transition } from '@headlessui/react';
 import { ShoppingBagIcon, MagnifyingGlassIcon, UserIcon } from '@heroicons/react/24/outline';
 
+// Manga dallarını zenginleştirdik
 const navigation = [
-  { name: 'Yeni Çıkanlar', href: '/yeni' },
-  { name: 'Çok Satanlar', href: '/populer' },
+  { name: 'Yeni', href: '/yeni' },
+  { name: 'Popüler', href: '/populer' },
   { name: 'Shounen', href: '/kategori/shounen' },
+  { name: 'Shoujo', href: '/kategori/shoujo' },
   { name: 'Seinen', href: '/kategori/seinen' },
+  { name: 'Isekai', href: '/kategori/isekai' },
+  { name: 'Hayattan Kesitler', href: '/kategori/slice-of-life' },
   { name: 'Karanlık Fantezi', href: '/kategori/dark-fantasy' },
 ];
 
@@ -21,18 +25,18 @@ export default function Navbar() {
           
           {/* Logo Alanı */}
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-black tracking-tighter text-foreground uppercase">
+            <Link href="/" className="text-2xl font-black tracking-tighter text-foreground uppercase flex-shrink-0">
               Manga<span className="text-accent">Sokagi</span>
             </Link>
           </div>
 
-          {/* Masaüstü Navigasyon */}
-          <div className="hidden ml-10 space-x-8 lg:block">
+          {/* Masaüstü Navigasyon (Ekstra dallar sığsın diye space-x-6'ya düşürdük) */}
+          <div className="hidden ml-10 space-x-6 lg:block overflow-x-auto">
             {navigation.map((link) => (
               <Link 
                 key={link.name} 
                 href={link.href} 
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors whitespace-nowrap"
               >
                 {link.name}
               </Link>
@@ -40,7 +44,7 @@ export default function Navbar() {
           </div>
 
           {/* Sağ İkonlar (Arama, Kullanıcı, Sepet) */}
-          <div className="ml-10 flex items-center space-x-4">
+          <div className="ml-10 flex items-center space-x-4 flex-shrink-0">
             <button className="text-foreground/60 hover:text-primary transition-colors">
               <span className="sr-only">Arama Yap</span>
               <MagnifyingGlassIcon className="h-6 w-6" aria-hidden="true" />
