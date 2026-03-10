@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* Tailwind v4 için Class tabanlı Karanlık Mod (Dark Mode) Aktivasyonu */
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary-ghibli);
+  --color-secondary: var(--secondary-ghibli);
+  --color-accent: var(--accent-ghibli);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
 :root {
   /* Ghibli Light: Sıcak kağıt/krem tonları, pastel doğa renkleri */
   --background: #F9F6F0; /* Yumuşak krem/bej - Göz yormayan kağıt dokusu */
@@ -11,31 +24,20 @@
   --accent-ghibli: #D97C64; /* Calcifer/Kiki kurdelesi tatlı kiremit kırmızısı (İndirim etiketleri veya sepete ekle için) */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary-ghibli);
-  --color-secondary: var(--secondary-ghibli);
-  --color-accent: var(--accent-ghibli);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Ghibli Dark: Derin gece mavileri, yumuşak ay ışığı tonları */
-    --background: #1C242B; /* Derin gece mavisi/lacivert (Sessiz bir gece hissi) */
-    --foreground: #E8E4D9; /* Soluk krem (Beyazdan daha az göz yorar) */
-    
-    /* Karanlık Modda Ghibli Renklerinin Daha Doygun Halleri */
-    --primary-ghibli: #6B8461; 
-    --secondary-ghibli: #5A7F9E;
-    --accent-ghibli: #C26852; 
-  }
+/* YENİ: next-themes kütüphanesinin tetiklediği class */
+.dark {
+  /* Ghibli Dark: Derin gece mavileri, yumuşak ay ışığı tonları */
+  --background: #1C242B; /* Derin gece mavisi/lacivert (Sessiz bir gece hissi) */
+  --foreground: #E8E4D9; /* Soluk krem (Beyazdan daha az göz yorar) */
+  
+  /* Karanlık Modda Ghibli Renklerinin Daha Doygun Halleri */
+  --primary-ghibli: #6B8461; 
+  --secondary-ghibli: #5A7F9E;
+  --accent-ghibli: #C26852; 
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   /* Açık/Koyu mod geçişlerinde Ghibli hissiyatına uygun yumuşaklık */

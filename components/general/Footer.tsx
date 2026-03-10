@@ -1,13 +1,7 @@
 import Link from 'next/link';
+import { categories } from '@/lib/data'; // Kategorileri data.ts'den çekiyoruz
 
 const footerNavigation = {
-  kategoriler: [
-    { name: 'Shounen', href: '/kategori/shounen' },
-    { name: 'Shoujo', href: '/kategori/shoujo' },
-    { name: 'Seinen', href: '/kategori/seinen' },
-    { name: 'Koleksiyon Sürümleri', href: '/koleksiyon' },
-    { name: 'Cilt Setleri', href: '/setler' },
-  ],
   yardim: [
     { name: 'Kargo ve Teslimat', href: '/yardim/kargo' },
     { name: 'İade Koşulları', href: '/yardim/iade' },
@@ -22,43 +16,64 @@ const footerNavigation = {
 };
 
 export default function Footer() {
+  // Footer'ın çok uzamasını engellemek için sadece ilk 5 kategoriyi alıyoruz
+  const visibleCategories = categories.slice(0, 5);
+  const hasMoreCategories = categories.length > 5;
+
   return (
-    <footer className="bg-background border-t border-foreground/10 transition-colors duration-500" aria-labelledby="footer-heading">
+    <footer className="bg-background border-t border-foreground/5 transition-colors duration-500 relative overflow-hidden" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">Footer</h2>
-      <div className="mx-auto max-w-7xl px-6 pb-8 pt-16 sm:pt-24 lg:px-8 lg:pt-32">
+      
+      {/* İnce Dekoratif Çizgi */}
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+
+      <div className="mx-auto max-w-7xl px-6 pb-8 pt-16 sm:pt-24 lg:px-8 lg:pt-32 relative z-10">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           
           {/* Sol Kısım: Logo ve Açıklama */}
-          <div className="space-y-8">
-            <Link href="/" className="text-2xl font-black tracking-tighter text-foreground uppercase">
-              Manga<span className="text-accent">Sokagi</span>
+          <div className="space-y-8 xl:col-span-1">
+            <Link href="/" className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground uppercase group block w-fit">
+              Manga<span className="text-primary transition-colors duration-300 group-hover:text-accent">Sokagi</span>
             </Link>
-            <p className="text-sm leading-6 text-foreground/70">
-              En sevdiğin seriler, tekli ciltler ve özel koleksiyonlar. Ghibli sıcaklığında manga kültürünü tek bir çatı altında topluyoruz.
+            <p className="text-sm leading-relaxed text-foreground/60 max-w-xs font-medium">
+              En sevdiğin seriler, tekli ciltler ve özel koleksiyonlar. Ghibli sıcaklığında manga kültürünü tek bir çatı altında topluyoruz. Kahveni al ve okumaya başla.
             </p>
           </div>
 
           {/* Sağ Kısım: Link Menüleri */}
           <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
+              
+              {/* Dinamik Kategoriler (Akıllı Sınırlandırma) */}
               <div>
-                <h3 className="text-sm font-semibold leading-6 text-foreground">Kategoriler</h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  {footerNavigation.kategoriler.map((item) => (
+                <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-6">Keşfet</h3>
+                <ul role="list" className="space-y-4">
+                  {visibleCategories.map((item) => (
                     <li key={item.name}>
-                      <Link href={item.href} className="text-sm leading-6 text-foreground/70 hover:text-primary transition-colors">
+                      <Link href={item.href} className="text-sm font-medium text-foreground/60 hover:text-primary transition-colors">
                         {item.name}
                       </Link>
                     </li>
                   ))}
+                  
+                  {/* Eğer 5'ten fazla kategori varsa bu link çıkar */}
+                  {hasMoreCategories && (
+                    <li className="pt-2">
+                      <Link href="/koleksiyon" className="text-xs font-bold text-primary hover:text-accent transition-colors flex items-center gap-1 group">
+                        Tüm Kategoriler 
+                        <span className="transition-transform group-hover:translate-x-1">→</span>
+                      </Link>
+                    </li>
+                  )}
                 </ul>
               </div>
+              
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold leading-6 text-foreground">Yardım</h3>
-                <ul role="list" className="mt-6 space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-6">Yardım</h3>
+                <ul role="list" className="space-y-4">
                   {footerNavigation.yardim.map((item) => (
                     <li key={item.name}>
-                      <Link href={item.href} className="text-sm leading-6 text-foreground/70 hover:text-primary transition-colors">
+                      <Link href={item.href} className="text-sm font-medium text-foreground/60 hover:text-primary transition-colors">
                         {item.name}
                       </Link>
                     </li>
@@ -66,13 +81,14 @@ export default function Footer() {
                 </ul>
               </div>
             </div>
+            
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="text-sm font-semibold leading-6 text-foreground">Kurumsal</h3>
-                <ul role="list" className="mt-6 space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-6">Kurumsal</h3>
+                <ul role="list" className="space-y-4">
                   {footerNavigation.kurumsal.map((item) => (
                     <li key={item.name}>
-                      <Link href={item.href} className="text-sm leading-6 text-foreground/70 hover:text-primary transition-colors">
+                      <Link href={item.href} className="text-sm font-medium text-foreground/60 hover:text-primary transition-colors">
                         {item.name}
                       </Link>
                     </li>
@@ -84,9 +100,12 @@ export default function Footer() {
         </div>
         
         {/* Alt Kısım: Telif Hakkı */}
-        <div className="mt-16 border-t border-foreground/10 pt-8 sm:mt-20 lg:mt-24">
-          <p className="text-xs leading-5 text-foreground/50">
+        <div className="mt-16 border-t border-foreground/5 pt-8 sm:mt-20 lg:mt-24 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs font-medium text-foreground/40">
             &copy; {new Date().getFullYear()} MangaSokagi, Inc. Tüm hakları saklıdır.
+          </p>
+          <p className="text-[10px] font-bold text-foreground/30 uppercase tracking-[0.2em]">
+            Gölbaşı, Ankara&apos;dan sevgilerle
           </p>
         </div>
       </div>
