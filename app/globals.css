@@ -9,37 +9,41 @@
   --color-primary: var(--primary-ghibli);
   --color-secondary: var(--secondary-ghibli);
   --color-accent: var(--accent-ghibli);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 }
 
 :root {
-  /* Ghibli Light: Sıcak kağıt/krem tonları, pastel doğa renkleri */
-  --background: #F9F6F0; /* Yumuşak krem/bej - Göz yormayan kağıt dokusu */
-  --foreground: #2C3E2E; /* Koyu orman yeşili/gri - Sert siyah yerine yumuşak okunabilirlik */
+  /* Ghibli Light: Sulu boya kağıdı ve rüzgarlı gökyüzü hissi */
+  --background: #FDFBF7; /* Saf krem, pürüzsüz sulu boya kağıdı dokusu */
+  --foreground: #2A3439; /* Koyu lacivert/gri - Siyah yerine çok daha huzurlu ve okunaklı */
   
-  /* Özel Ghibli Renkleri */
-  --primary-ghibli: #88A07C; /* Matcha / Çimen yeşili (Butonlar ve ana hatlar için) */
-  --secondary-ghibli: #749CBB; /* Rüzgarlı vadi mavisi (İkincil detaylar için) */
-  --accent-ghibli: #D97C64; /* Calcifer/Kiki kurdelesi tatlı kiremit kırmızısı (İndirim etiketleri veya sepete ekle için) */
+  /* YENİ MARKA RENGİ: Huzurlu Gökyüzü / Deniz Mavisi (Haku Mavi) */
+  --primary-ghibli: #5C8EAD; 
+  
+  /* İkincil Renk: Eski tatlı yeşili doğa hissi için arkada tutuyoruz (Totoro Ormanı) */
+  --secondary-ghibli: #88A07C; 
+  
+  /* Vurgu Rengi: Sıcak bir mercan/kiremit (Calcifer veya Kiki'nin kurdelesi) */
+  --accent-ghibli: #D47B6A; 
 }
 
 /* YENİ: next-themes kütüphanesinin tetiklediği class */
 .dark {
-  /* Ghibli Dark: Derin gece mavileri, yumuşak ay ışığı tonları */
-  --background: #1C242B; /* Derin gece mavisi/lacivert (Sessiz bir gece hissi) */
-  --foreground: #E8E4D9; /* Soluk krem (Beyazdan daha az göz yorar) */
+  /* Ghibli Dark: Sessiz bir yaz gecesi, parlayan yıldızlar */
+  --background: #161D24; /* Çok derin, göz yormayan gece mavisi */
+  --foreground: #E5E9F0; /* Ay ışığı beyazı/kremi */
   
-  /* Karanlık Modda Ghibli Renklerinin Daha Doygun Halleri */
-  --primary-ghibli: #6B8461; 
-  --secondary-ghibli: #5A7F9E;
-  --accent-ghibli: #C26852; 
+  /* Karanlık modda mavinin biraz daha pastel ve parlayan hali */
+  --primary-ghibli: #6B9DBF; 
+  --secondary-ghibli: #728A67;
+  --accent-ghibli: #C46452; 
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  /* Açık/Koyu mod geçişlerinde Ghibli hissiyatına uygun yumuşaklık */
-  transition: background-color 0.4s ease-in-out, color 0.4s ease-in-out; 
+  /* Açık/Koyu mod geçişlerinde rüzgar gibi yumuşak bir animasyon */
+  transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out; 
 }
