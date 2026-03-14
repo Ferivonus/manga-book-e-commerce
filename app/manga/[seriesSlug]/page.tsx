@@ -17,47 +17,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolid } from '@heroicons/react/20/solid';
 
-import { getMangaBySlug, getMangas } from '@/lib/api';
-
-// --- KESİN TİP TANIMLAMALARI ---
-interface CategoryInfo {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-interface Volume {
-  id: number;
-  volumeNumber: number | null;
-  title: string;
-  slug: string;
-  price: number | string; // Prisma Decimal bazen string dönebilir
-  imageUrl: string;
-  stock: number;
-}
-
-interface MangaSeriesDetail {
-  id: number;
-  title: string;
-  slug: string;
-  author: string;
-  description: string | null;
-  isOneShot: boolean;
-  rating: number | string | null;
-  reviewsCount: number;
-  popularityRank: number;
-  category: CategoryInfo; // İlişkili kategori objesi
-  volumes: Volume[];     // İlişkili ciltler dizisi
-}
-
-// Önerilenler için basitleştirilmiş tip
-interface SuggestionManga {
-  id: number;
-  title: string;
-  slug: string;
-  isOneShot: boolean;
-  volumes: { price: number | string; imageUrl: string }[];
-}
+// API'den yeni yazdığımız MangaDetail tipini ve fonksiyonları içeri alıyoruz
+import { getMangaBySlug, getMangas, MangaDetail } from '@/lib/api';
+import type { Manga } from '@/lib/data';
 
 export default function SeriesDetailPage({ 
   params 
@@ -65,8 +27,10 @@ export default function SeriesDetailPage({
   params: Promise<{ seriesSlug: string }> 
 }) {
   const resolvedParams = use(params);
-  const [manga, setManga] = useState<MangaSeriesDetail | null>(null);
-  const [suggestions, setSuggestions] = useState<SuggestionManga[]>([]);
+  
+  // Tip güvenliği API'den gelen orijinal MangaDetail ile sağlandı
+  const [manga, setManga] = useState<MangaDetail | null>(null);
+  const [suggestions, setSuggestions] = useState<Manga[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -80,12 +44,11 @@ export default function SeriesDetailPage({
           return;
         }
 
-        setManga(data as unknown as MangaSeriesDetail);
+        setManga(data);
 
         const { mangas: allData } = await getMangas();
         if (allData) {
-          // Tip güvenliği için cast işlemi
-          const filtered = (allData as unknown as SuggestionManga[])
+          const filtered = allData
             .filter(m => m.slug !== resolvedParams.seriesSlug)
             .slice(0, 4);
           setSuggestions(filtered);
@@ -116,7 +79,6 @@ export default function SeriesDetailPage({
   if (!manga) return null;
 
   // Hesaplamalar
-  const coverImage = manga.volumes?.[0]?.imageUrl || '/placeholder.png';
   const displayRating = Number(manga.rating || 0).toFixed(1);
 
   return (
@@ -143,7 +105,7 @@ export default function SeriesDetailPage({
             <div className="w-full lg:w-[400px] flex-shrink-0 mb-12 lg:mb-0">
               <div className="relative aspect-[2/3] w-full rounded-[3.5rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.15)] ring-1 ring-white/20 group">
                 <Image 
-                  src={coverImage} 
+                  src={manga.image || '/placeholder.png'} 
                   alt={manga.title} 
                   fill 
                   className="object-cover transition-transform duration-[3s] group-hover:scale-110" 
@@ -156,7 +118,7 @@ export default function SeriesDetailPage({
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-4 mb-8">
                 <span className="bg-primary text-white px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl">
-                  {manga.category?.name}
+                  {manga.category} {/* .name kaldırıldı, artık direkt string */}
                 </span>
                 <div className="flex items-center gap-1.5 text-accent bg-accent/5 px-4 py-2 rounded-2xl border border-accent/10">
                   <StarSolid className="h-4 w-4" />
@@ -295,7 +257,7 @@ export default function SeriesDetailPage({
                 <Link key={item.id} href={`/manga/${item.slug}`} className="group flex flex-col">
                   <div className="relative aspect-[2/3] rounded-[3.5rem] overflow-hidden bg-foreground/5 shadow-xl group-hover:shadow-[0_40px_80px_rgba(var(--primary),0.15)] ring-1 ring-foreground/5 group-hover:ring-primary/40 transition-all duration-700 mb-10 group-hover:-translate-y-3">
                     <Image 
-                      src={item.volumes?.[0]?.imageUrl || '/placeholder.png'} 
+                      src={item.image || '/placeholder.png'} 
                       alt={item.title} 
                       fill 
                       className="object-cover transition-transform duration-[2000ms] group-hover:scale-110" 
@@ -305,7 +267,7 @@ export default function SeriesDetailPage({
                   <h3 className="font-black text-foreground text-3xl group-hover:text-primary transition-colors leading-none uppercase tracking-tighter truncate px-2">{item.title}</h3>
                   <div className="flex items-center justify-between mt-5 px-2">
                     <p className="text-accent font-black text-2xl italic tracking-tighter">
-                      ₺{Number(item.volumes?.[0]?.price || 0).toFixed(2)}
+                      ₺{Number(item.price || 0).toFixed(2)}
                     </p>
                     <span className="text-[9px] font-black text-foreground/20 uppercase tracking-widest">{item.isOneShot ? 'ONE-SHOT' : 'SERİ'}</span>
                   </div>

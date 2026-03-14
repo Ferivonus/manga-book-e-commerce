@@ -3,7 +3,7 @@ import { allMangas, categories as mockCategories, Manga } from './data';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // ============================================================================
-// 🧱 TİP TANIMLAMALARI (Backend ile %100 Uyumlu)
+// 🧱 TİP TANIMLAMALARI (Backend ile Uyumlu)
 // ============================================================================
 
 interface CategoryResponse {
@@ -17,7 +17,7 @@ interface VolumeResponse {
   id: number;
   volumeNumber: number | null;
   title: string;
-  slug: string; // URL için kritik
+  slug: string;
   price: string | number;
   originalPrice: string | number | null;
   imageUrl: string;
@@ -33,7 +33,7 @@ interface VolumeResponse {
 interface MangaSeriesResponse {
   id: number;
   title: string;
-  slug: string; // URL için kritik
+  slug: string;
   author: string;
   description: string | null;
   isOneShot: boolean;
@@ -49,17 +49,47 @@ interface PaginatedMangaResponse {
   totalCount: number;
 }
 
+// Frontend'de detay sayfasında kullanılacak, volumes içeren genişletilmiş tip
+export interface MangaDetail extends Manga {
+  volumes: {
+    id: string;
+    volumeNumber: number | null;
+    title: string;
+    slug: string;
+    price: number;
+    imageUrl: string;
+    stock: number;
+  }[];
+}
+
+// ============================================================================
+// 🛡️ YARDIMCI FONKSİYONLAR
+// ============================================================================
+
+const getAuthToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    try {
+      const storedData = localStorage.getItem('auth-storage');
+      if (storedData) {
+        const parsed = JSON.parse(storedData);
+        return parsed?.state?.token || null;
+      }
+    } catch (error) {
+      console.error('Token okunurken hata oluştu:', error);
+      return null;
+    }
+  }
+  return null;
+};
+
 // ============================================================================
 // 🛠️ VERİ DÖNÜŞTÜRÜCÜLER (Adapters)
 // ============================================================================
 
-/**
- * Bir cildi (Volume) frontend Manga objesine çevirir.
- */
-function mapVolumeToManga(volume: VolumeResponse): Manga {
+export function mapVolumeToManga(volume: VolumeResponse): Manga {
   return {
     id: volume.id.toString(),
-    slug: volume.slug, // DÜZELTME: Cilt slug'ını ekledik
+    slug: volume.slug,
     title: volume.title,
     author: volume.manga?.author || "Bilinmiyor",
     price: Number(volume.price),
@@ -81,15 +111,12 @@ function mapVolumeToManga(volume: VolumeResponse): Manga {
   };
 }
 
-/**
- * Bir seriyi (Series) frontend Manga objesine çevirir.
- */
-function mapSeriesToManga(series: MangaSeriesResponse): Manga {
+export function mapSeriesToManga(series: MangaSeriesResponse): Manga {
   const defaultVolume = series.volumes && series.volumes.length > 0 ? series.volumes[0] : null;
   
   return {
     id: series.id.toString(),
-    slug: series.slug, // DÜZELTME: Seri slug'ını ekledik
+    slug: series.slug,
     title: series.title,
     author: series.author,
     price: defaultVolume ? Number(defaultVolume.price) : 0,
@@ -111,8 +138,26 @@ function mapSeriesToManga(series: MangaSeriesResponse): Manga {
   };
 }
 
+// Detay sayfası için ciltleri (volumes) de içeren dönüştürücü
+export function mapSeriesToMangaDetail(series: MangaSeriesResponse): MangaDetail {
+  const baseManga = mapSeriesToManga(series);
+  
+  return {
+    ...baseManga,
+    volumes: series.volumes?.map(v => ({
+      id: v.id.toString(),
+      volumeNumber: v.volumeNumber,
+      title: v.title,
+      slug: v.slug,
+      price: Number(v.price),
+      imageUrl: v.imageUrl,
+      stock: v.stock
+    })) || [],
+  };
+}
+
 // ============================================================================
-// 📚 API FONKSİYONLARI
+// 📚 GENEL API FONKSİYONLARI (Koleksiyon & Keşif)
 // ============================================================================
 
 export async function getMangas(categorySlug?: string, searchTerm?: string, page: number = 1, limit: number = 12) {
@@ -135,13 +180,9 @@ export async function getMangas(categorySlug?: string, searchTerm?: string, page
       mangas: data.items.map(mapSeriesToManga),
       totalCount: data.totalCount
     };
-
   } catch (error) {
     console.warn("⚠️ Mangalar çekilemedi, mock veriler kullanılıyor...", error);
-    return {
-      mangas: allMangas.slice(0, limit),
-      totalCount: allMangas.length
-    };
+    return { mangas: allMangas.slice(0, limit), totalCount: allMangas.length };
   }
 }
 
@@ -156,8 +197,8 @@ export async function getFeaturedMangas() {
       newArrivals: data.newArrivals.map(mapVolumeToManga),
       bestSellers: data.bestSellers.map(mapVolumeToManga)
     };
-  } catch (error) {
-    console.warn("⚠️ Öne çıkanlar çekilemedi, mock veriler devrede...", error);
+  } catch {
+    // ESLint unused-vars hatasını önlemek için error parametresini kaldırdık
     return {
       newArrivals: allMangas.filter(m => m.isNewArrival).slice(0, 8),
       bestSellers: allMangas.filter(m => m.isBestSeller).slice(0, 8)
@@ -165,17 +206,17 @@ export async function getFeaturedMangas() {
   }
 }
 
-export async function getMangaBySlug(slug: string): Promise<Manga | null> {
+// Artık detay sayfasının beklediği MangaDetail tipini dönüyoruz
+export async function getMangaBySlug(slug: string): Promise<MangaDetail | null> {
   try {
     const res = await fetch(`${API_URL}/mangas/${slug}`, { cache: 'no-store' });
     if (!res.ok) throw new Error('Manga bulunamadı');
 
     const data = (await res.json()) as MangaSeriesResponse;
-    return mapSeriesToManga(data);
-  } catch (error) {
-    console.warn(`⚠️ '${slug}' çekilemedi, mock veri aranıyor...`, error);
-    // ID yerine slug ile eşleştirme yapıyoruz
-    return allMangas.find(m => m.slug === slug) || null;
+    return mapSeriesToMangaDetail(data);
+  } catch {
+    // ESLint unused-vars hatasını önlemek için error parametresini kaldırdık
+    return null;
   }
 }
 
@@ -185,27 +226,105 @@ export async function getCategories() {
     if (!res.ok) throw new Error('Kategoriler çekilemedi');
 
     const data = (await res.json()) as CategoryResponse[];
-    return data.map((cat) => ({
-      name: cat.name,
-      href: `/kategori/${cat.slug}`,
-      icon: cat.icon
-    }));
-  } catch (error) {
-    console.warn("⚠️ Kategoriler çekilemedi, mock veriler devrede...", error);
+    return data.map((cat) => ({ name: cat.name, href: `/kategori/${cat.slug}`, icon: cat.icon }));
+  } catch {
+    // ESLint unused-vars hatasını önlemek için error parametresini kaldırdık
     return mockCategories;
   }
 }
 
-export async function getFavorites(userId?: string): Promise<Manga[]> {
-  try {
-    const url = userId ? `${API_URL}/favorites?userId=${userId}` : `${API_URL}/favorites`;
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`API Hatası: ${res.status}`);
+// ============================================================================
+// 🔑 KİMLİK DOĞRULAMA (Auth) API FONKSİYONLARI
+// ============================================================================
 
-    const data = (await res.json()) as MangaSeriesResponse[];
-    return data.map(mapSeriesToManga);
-  } catch (error) {
-    console.warn("⚠️ Favoriler çekilemedi, mock veriler devrede...", error);
-    return [allMangas[0], allMangas[1], allMangas[2]];
+export async function loginUser(email: string, password: string) {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await res.json();
+  
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || 'Giriş işlemi başarısız oldu.');
   }
+  
+  return data;
+}
+
+export async function registerUser(email: string, password: string) {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || 'Kayıt işlemi başarısız oldu.');
+  }
+
+  return data;
+}
+
+// ============================================================================
+// 🔒 KORUMALI API FONKSİYONLARI (Profil & Favoriler)
+// ============================================================================
+
+export async function getUserProfile() {
+  const token = getAuthToken();
+  if (!token) throw new Error('Oturum bulunamadı');
+
+  const res = await fetch(`${API_URL}/user/profile`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+    cache: 'no-store'
+  });
+
+  if (!res.ok) throw new Error('Profil bilgileri alınamadı');
+  return res.json();
+}
+
+export async function updateUserProfile(name: string) {
+  const token = getAuthToken();
+  if (!token) throw new Error('Oturum bulunamadı');
+
+  const res = await fetch(`${API_URL}/user/profile`, {
+    method: 'PUT',
+    headers: { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name })
+  });
+
+  if (!res.ok) throw new Error('Profil güncellenemedi');
+  return res.json();
+}
+
+export async function toggleMangaFavorite(mangaId: number) {
+  const token = getAuthToken();
+  if (!token) throw new Error('Lütfen önce giriş yapın');
+
+  const res = await fetch(`${API_URL}/user/favorites/manga/${mangaId}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+
+  if (!res.ok) throw new Error('İşlem başarısız');
+  return res.json();
+}
+
+export async function toggleVolumeFavorite(volumeId: number) {
+  const token = getAuthToken();
+  if (!token) throw new Error('Lütfen önce giriş yapın');
+
+  const res = await fetch(`${API_URL}/user/favorites/volume/${volumeId}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+
+  if (!res.ok) throw new Error('İşlem başarısız');
+  return res.json();
 }

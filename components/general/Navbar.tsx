@@ -8,7 +8,6 @@ import { Menu, MenuButton, MenuItems, MenuItem, Transition, TransitionChild, Dia
 import { 
   ShoppingBagIcon, 
   MagnifyingGlassIcon, 
-  UserIcon,
   SunIcon, 
   MoonIcon,
   ChevronDownIcon,
@@ -19,6 +18,9 @@ import {
 import { useTheme } from 'next-themes'; 
 import SearchModal from './SearchModal'; 
 import { getCategories } from '@/lib/api';
+
+import { useCartStore } from '@/store/useCartStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 type CategoryItem = {
   name: string;
@@ -33,6 +35,9 @@ export default function Navbar() {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   
   const pathname = usePathname();
+
+  const getTotalItems = useCartStore((state) => state.getTotalItems);
+const { user, isAuthenticated, logout } = useAuthStore();
 
   const isActive = (path: string) => pathname === path;
   const isCategoryActive = pathname.startsWith('/kategori');
@@ -143,46 +148,54 @@ export default function Navbar() {
               )}
 
               {/* Kullanıcı Menüsü */}
-              <div className="relative hidden sm:block">
-                {isMounted ? (
-                  <Menu as="div" className="relative inline-block text-left">
-                    <MenuButton className="p-2.5 rounded-full bg-foreground/[0.03] text-foreground/40 hover:text-primary transition-all border border-transparent hover:border-primary/10">
-                      <UserIcon className="h-5 w-5" />
-                    </MenuButton>
-                    <Transition as={Fragment} enter="transition ease-out duration-200" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="transition ease-in duration-150" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-                      <MenuItems className="absolute right-0 top-12 mt-2 w-56 origin-top-right rounded-[2rem] bg-background/95 backdrop-blur-2xl shadow-2xl ring-1 ring-primary/10 focus:outline-none overflow-hidden p-2">
-                        <div className="flex flex-col gap-1">
-                          {/* DÜZELTME 2: Headless UI v2'ye uygun data-[focus] yapısı eklendi */}
-                          <MenuItem>
-                            <Link 
-                              href="/profil" 
-                              className={`block px-5 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl data-[focus]:bg-primary/10 data-[focus]:text-primary transition-colors ${isActive('/profil') ? 'bg-primary/10 text-primary' : 'text-foreground/60'}`}
-                            >
-                              Profil Bilgilerim
-                            </Link>
-                          </MenuItem>
-                          <MenuItem>
-                            <Link 
-                              href="/siparisler" 
-                              className={`block px-5 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl data-[focus]:bg-primary/10 data-[focus]:text-primary transition-colors ${isActive('/siparisler') ? 'bg-primary/10 text-primary' : 'text-foreground/60'}`}
-                            >
-                              Siparişlerim
-                            </Link>
-                          </MenuItem>
-                        </div>
-                      </MenuItems>
-                    </Transition>
-                  </Menu>
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-foreground/[0.03] animate-pulse" />
-                )}
-              </div>
+<div className="relative hidden sm:block">
+  {isMounted ? (
+    isAuthenticated ? (
+      <Menu as="div" className="relative inline-block text-left">
+        <MenuButton className="flex items-center gap-2 p-2 rounded-full bg-foreground/[0.03] hover:bg-primary/5 transition-all border border-transparent hover:border-primary/10">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-black uppercase">
+            {user?.name ? user.name[0] : user?.email[0]}
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-foreground/60 pr-2">
+            {user?.name || 'Gezgin'}
+          </span>
+        </MenuButton>
+        <Transition as={Fragment} /* Mevcut animasyon kodların buraya gelecek */ >
+          <MenuItems className="absolute right-0 top-12 mt-2 w-56 origin-top-right rounded-[2rem] bg-background/95 backdrop-blur-2xl shadow-2xl ring-1 ring-primary/10 p-2">
+            <div className="flex flex-col gap-1">
+              <MenuItem>
+                <Link href="/profil" className="block px-5 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-primary/10 hover:text-primary transition-colors">
+                  Profil Bilgilerim
+                </Link>
+              </MenuItem>
+              <MenuItem>
+                <button 
+                  onClick={() => logout()}
+                  className="w-full text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl text-accent hover:bg-accent/10 transition-colors"
+                >
+                  Güvenli Çıkış
+                </button>
+              </MenuItem>
+            </div>
+          </MenuItems>
+        </Transition>
+      </Menu>
+    ) : (
+      <Link href="/login" className="text-[11px] font-black uppercase tracking-[0.2em] text-primary hover:text-accent transition-colors">
+        Giriş Yap
+      </Link>
+    )
+  ) : (
+    <div className="w-20 h-10 rounded-full bg-foreground/[0.03] animate-pulse" />
+  )}
+</div>
 
               {/* Sepet */}
               <Link href="/cart" className="group p-2.5 rounded-full bg-foreground/[0.03] relative hover:bg-primary transition-all duration-500 border border-transparent hover:border-primary/20">
                 <ShoppingBagIcon className={`h-5 w-5 transition-colors ${isActive('/cart') ? 'text-primary' : 'text-foreground/40 group-hover:text-white'}`} />
                 <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[9px] font-black text-white shadow-xl ring-2 ring-background">
-                  0
+                  {/* Eski hali: 0 */}
+                    {isMounted ? getTotalItems() : 0}
                 </span>
               </Link>
 
@@ -222,68 +235,111 @@ export default function Navbar() {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <DialogPanel className="relative flex w-full max-w-xs flex-col overflow-y-auto bg-background pb-12 shadow-2xl border-r border-primary/10">
-                
-                <div className="flex px-6 pb-4 pt-6 justify-between items-center border-b border-primary/10">
-                  <span className="text-xl font-black uppercase tracking-tighter text-foreground">MENÜ</span>
-                  <button
-                    type="button"
-                    className="relative -m-2 inline-flex items-center justify-center rounded-xl p-2 text-foreground/50 hover:text-primary bg-foreground/5"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <span className="sr-only">Menüyü Kapat</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
-                </div>
+<DialogPanel className="relative flex w-full max-w-xs flex-col overflow-y-auto bg-background pb-12 shadow-2xl border-r border-primary/10">
+  
+  {/* --- ÜST BAŞLIK & KAPATMA --- */}
+  <div className="flex px-6 pb-4 pt-6 justify-between items-center border-b border-primary/10">
+    <span className="text-xl font-black uppercase tracking-tighter text-foreground">MENÜ</span>
+    <button
+      type="button"
+      className="relative -m-2 inline-flex items-center justify-center rounded-xl p-2 text-foreground/50 hover:text-primary bg-foreground/5"
+      onClick={() => setIsMobileMenuOpen(false)}
+    >
+      <span className="sr-only">Menüyü Kapat</span>
+      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+    </button>
+  </div>
 
-                <div className="space-y-6 border-b border-primary/10 px-6 py-8">
-                  <div className="grid grid-cols-1 gap-y-6">
-                    <Link href="/yeni" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest ${isActive('/yeni') ? 'text-primary' : 'text-foreground/80'}`}>Yeni Gelenler</Link>
-                    <Link href="/populer" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest ${isActive('/populer') ? 'text-primary' : 'text-foreground/80'}`}>Popüler Seriler</Link>
-                    <Link href="/koleksiyon" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest ${isActive('/koleksiyon') ? 'text-primary' : 'text-foreground/80'}`}>Kütüphane</Link>
-                    <Link href="/favorites" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest flex items-center justify-between ${isActive('/favorites') ? 'text-accent' : 'text-accent/80'}`}>
-                      Favorilerim
-                      <span className="bg-accent text-white text-[9px] font-black px-2 py-1 rounded-lg">HOT</span>
-                    </Link>
-                  </div>
-                </div>
+  {/* --- ANA NAVİGASYON --- */}
+  <div className="space-y-6 border-b border-primary/10 px-6 py-8">
+    <div className="grid grid-cols-1 gap-y-6">
+      <Link href="/yeni" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest ${isActive('/yeni') ? 'text-primary' : 'text-foreground/80'}`}>Yeni Gelenler</Link>
+      <Link href="/populer" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest ${isActive('/populer') ? 'text-primary' : 'text-foreground/80'}`}>Popüler Seriler</Link>
+      <Link href="/koleksiyon" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest ${isActive('/koleksiyon') ? 'text-primary' : 'text-foreground/80'}`}>Kütüphane</Link>
+      <Link href="/favorites" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest flex items-center justify-between ${isActive('/favorites') ? 'text-accent' : 'text-accent/80'}`}>
+        Favorilerim
+        <span className="bg-accent text-white text-[9px] font-black px-2 py-1 rounded-lg shadow-lg">HOT</span>
+      </Link>
+    </div>
+  </div>
 
-                <div className="space-y-6 px-6 py-8">
-                  <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.3em]">Kategoriler</h3>
-                  <div className="grid grid-cols-1 gap-y-5">
-                    {categories.length > 0 ? (
-                      categories.map((category) => (
-                        <Link
-                          key={category.name}
-                          href={category.href}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className={`text-sm font-bold uppercase tracking-widest flex items-center justify-between ${isActive(category.href) ? 'text-primary' : 'text-foreground/70'}`}
-                        >
-                          {category.name}
-                          {isActive(category.href) && <ChevronRightIcon className="h-4 w-4 text-primary" />}
-                        </Link>
-                      ))
-                    ) : (
-                      <span className="text-sm text-foreground/50 italic animate-pulse">Raflar Diziliyor...</span>
-                    )}
-                  </div>
-                </div>
+  {/* --- KATEGORİLER --- */}
+  <div className="space-y-6 px-6 py-8">
+    <h3 className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.3em]">Kategoriler</h3>
+    <div className="grid grid-cols-1 gap-y-5">
+      {categories.length > 0 ? (
+        categories.map((category) => (
+          <Link
+            key={category.name}
+            href={category.href}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`text-sm font-bold uppercase tracking-widest flex items-center justify-between ${isActive(category.href) ? 'text-primary' : 'text-foreground/70'}`}
+          >
+            {category.name}
+            {isActive(category.href) && <ChevronRightIcon className="h-4 w-4 text-primary" />}
+          </Link>
+        ))
+      ) : (
+        <span className="text-sm text-foreground/50 italic animate-pulse">Raflar Diziliyor...</span>
+      )}
+    </div>
+  </div>
 
-                <div className="space-y-6 border-t border-primary/10 px-6 py-8 mt-auto">
-                  <Link href="/profil" onClick={() => setIsMobileMenuOpen(false)} className={`block text-sm font-bold uppercase tracking-widest ${isActive('/profil') ? 'text-primary' : 'text-foreground/80'}`}>Profil Detayları</Link>
-                  <Link href="/siparisler" onClick={() => setIsMobileMenuOpen(false)} className={`block text-sm font-bold uppercase tracking-widest ${isActive('/siparisler') ? 'text-primary' : 'text-foreground/80'}`}>Sipariş Geçmişi</Link>
-                  
-                  {isMounted && (
-                    <div className="pt-6 flex items-center justify-between border-t border-foreground/5">
-                      <span className="text-[10px] font-black text-foreground/50 uppercase tracking-[0.3em]">Tema Seçimi</span>
-                      <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="bg-foreground/5 p-3 rounded-2xl text-foreground hover:text-primary transition-colors">
-                        {theme === 'dark' ? <SunIcon className="h-6 w-6 text-accent" /> : <MoonIcon className="h-6 w-6 text-primary" />}
-                      </button>
-                    </div>
-                  )}
-                </div>
+  {/* --- KULLANICI & AYARLAR (ALT KISIM) --- */}
+  <div className="space-y-6 border-t border-primary/10 px-6 py-8 mt-auto">
+    {isMounted && (
+      <>
+        {/* Auth Durumuna Göre Değişen Kısım */}
+        {isAuthenticated ? (
+          <div className="flex flex-col gap-y-6">
+            <div className="space-y-4">
+              <Link 
+                href="/profil" 
+                onClick={() => setIsMobileMenuOpen(false)} 
+                className={`block text-sm font-bold uppercase tracking-widest ${isActive('/profil') ? 'text-primary' : 'text-foreground/80'}`}
+              >
+                Profil: <span className="text-primary italic">{user?.name || 'Gezgin'}</span>
+              </Link>
+              <Link 
+                href="/siparisler" 
+                onClick={() => setIsMobileMenuOpen(false)} 
+                className={`block text-sm font-bold uppercase tracking-widest ${isActive('/siparisler') ? 'text-primary' : 'text-foreground/80'}`}
+              >
+                Sipariş Geçmişi
+              </Link>
+            </div>
+            <button 
+              onClick={() => { logout(); setIsMobileMenuOpen(false); }} 
+              className="block w-full text-left text-sm font-bold uppercase tracking-widest text-accent hover:opacity-80 transition-opacity"
+            >
+              Çıkış Yap
+            </button>
+          </div>
+        ) : (
+          <Link 
+            href="/login" 
+            onClick={() => setIsMobileMenuOpen(false)} 
+            className="block text-sm font-bold uppercase tracking-widest text-primary bg-primary/5 p-4 rounded-2xl text-center shadow-sm border border-primary/10"
+          >
+            Giriş Yap / Kayıt Ol
+          </Link>
+        )}
+        
+        {/* Tema Seçimi */}
+        <div className="pt-6 flex items-center justify-between border-t border-foreground/5">
+          <span className="text-[10px] font-black text-foreground/50 uppercase tracking-[0.3em]">Tema Seçimi</span>
+          <button 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
+            className="bg-foreground/5 p-3 rounded-2xl text-foreground hover:text-primary transition-colors border border-foreground/5"
+          >
+            {theme === 'dark' ? <SunIcon className="h-6 w-6 text-accent" /> : <MoonIcon className="h-6 w-6 text-primary" />}
+          </button>
+        </div>
+      </>
+    )}
+  </div>
 
-              </DialogPanel>
+</DialogPanel>
             </TransitionChild>
           </div>
         </Dialog>
