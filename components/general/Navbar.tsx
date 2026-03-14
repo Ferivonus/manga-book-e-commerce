@@ -191,8 +191,8 @@ const { user, isAuthenticated, logout } = useAuthStore();
 </div>
 
               {/* Sepet */}
-              <Link href="/cart" className="group p-2.5 rounded-full bg-foreground/[0.03] relative hover:bg-primary transition-all duration-500 border border-transparent hover:border-primary/20">
-                <ShoppingBagIcon className={`h-5 w-5 transition-colors ${isActive('/cart') ? 'text-primary' : 'text-foreground/40 group-hover:text-white'}`} />
+              <Link href="/sepet" className="group p-2.5 rounded-full bg-foreground/[0.03] relative hover:bg-primary transition-all duration-500 border border-transparent hover:border-primary/20">
+                <ShoppingBagIcon className={`h-5 w-5 transition-colors ${isActive('/sepet') ? 'text-primary' : 'text-foreground/40 group-hover:text-white'}`} />
                 <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[9px] font-black text-white shadow-xl ring-2 ring-background">
                   {/* Eski hali: 0 */}
                     {isMounted ? getTotalItems() : 0}
