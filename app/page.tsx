@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { 
   ArrowRightIcon, 
   ShoppingCartIcon,
-  FireIcon,
   BookOpenIcon,
   SparklesIcon,
   ChevronLeftIcon,

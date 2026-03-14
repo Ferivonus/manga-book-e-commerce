@@ -89,8 +89,15 @@ const getAuthToken = (): string | null => {
 export function mapVolumeToManga(volume: VolumeResponse): Manga {
   return {
     id: volume.id.toString(),
-    slug: volume.slug,
-    title: volume.title,
+    // DÜZELTME: Linkler için her zaman üst serinin slug'ını kullanıyoruz.
+    // Eğer manga verisi eksikse fallback olarak volume slug'ı kullanılır.
+    slug: volume.manga?.slug || volume.slug, 
+    
+    // UI'da hangi ismi görmek istiyorsan onu seçebilirsin:
+    // volume.title -> "Vagabond Cilt 1" 
+    // volume.manga?.title -> "Vagabond"
+    title: volume.title, 
+    
     author: volume.manga?.author || "Bilinmiyor",
     price: Number(volume.price),
     originalPrice: volume.originalPrice ? Number(volume.originalPrice) : undefined,
@@ -116,12 +123,12 @@ export function mapSeriesToManga(series: MangaSeriesResponse): Manga {
   
   return {
     id: series.id.toString(),
-    slug: series.slug,
+    slug: series.slug, // Zaten seri slug'ı (örn: vagabond)
     title: series.title,
     author: series.author,
     price: defaultVolume ? Number(defaultVolume.price) : 0,
     originalPrice: defaultVolume?.originalPrice ? Number(defaultVolume.originalPrice) : undefined,
-    image: defaultVolume?.imageUrl || "",
+    image: defaultVolume?.imageUrl || series.volumes?.[0]?.imageUrl || "/placeholder.png",
     category: series.category?.name || "Genel",
     badge: defaultVolume?.badge || undefined,
     description: series.description || "",
