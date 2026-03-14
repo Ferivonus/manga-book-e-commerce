@@ -108,7 +108,7 @@ const { user, isAuthenticated, logout } = useAuthStore();
                 </div>
               </div>
 
-              <Link href="/favorites" className={`text-[11px] font-black uppercase tracking-[0.2em] relative transition-colors ${isActive('/favorites') ? 'text-accent' : 'text-accent/60 hover:text-accent'}`}>
+              <Link href="/favoriler" className={`text-[11px] font-black uppercase tracking-[0.2em] relative transition-colors ${isActive('/favoriler') ? 'text-accent' : 'text-accent/60 hover:text-accent'}`}>
                 Favorilerim
                 <span className="absolute -top-3 -right-4 bg-accent text-white text-[8px] font-black px-1.5 py-0.5 rounded-full rotate-12 shadow-lg animate-bounce">
                   HOT
@@ -256,7 +256,7 @@ const { user, isAuthenticated, logout } = useAuthStore();
       <Link href="/yeni" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest ${isActive('/yeni') ? 'text-primary' : 'text-foreground/80'}`}>Yeni Gelenler</Link>
       <Link href="/populer" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest ${isActive('/populer') ? 'text-primary' : 'text-foreground/80'}`}>Popüler Seriler</Link>
       <Link href="/koleksiyon" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest ${isActive('/koleksiyon') ? 'text-primary' : 'text-foreground/80'}`}>Kütüphane</Link>
-      <Link href="/favorites" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest flex items-center justify-between ${isActive('/favorites') ? 'text-accent' : 'text-accent/80'}`}>
+      <Link href="/favoriler" onClick={() => setIsMobileMenuOpen(false)} className={`text-sm font-bold uppercase tracking-widest flex items-center justify-between ${isActive('/favoriler') ? 'text-accent' : 'text-accent/80'}`}>
         Favorilerim
         <span className="bg-accent text-white text-[9px] font-black px-2 py-1 rounded-lg shadow-lg">HOT</span>
       </Link>

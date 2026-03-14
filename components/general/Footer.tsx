@@ -7,7 +7,7 @@ const footerNavigation = {
     { name: 'Yeni Gelenler', href: '/yeni' },
     { name: 'Popüler Seriler', href: '/populer' },
     { name: 'Tüm Kütüphane', href: '/koleksiyon' },
-    { name: 'Favorilerim', href: '/favorites' },
+    { name: 'Favorilerim', href: '/favoriler' },
   ],
   yardim: [
     { name: 'Kargo ve Teslimat', href: '/yardim/kargo' },
